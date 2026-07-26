@@ -1408,7 +1408,13 @@ public final class GhosttySurfaceView: UIView, TerminalSurfaceHosting {
 
     private var artifactChipShouldBeVisible: Bool {
         artifactChipHost.isRequestedVisible
-            && artifactChipScrollRevealed
+            // Assistive technologies cannot reasonably perform a scroll to
+            // reveal the only Files control, and the host hides its
+            // accessibility descendants while invisible — so the transient
+            // reveal is bypassed whenever VoiceOver or Switch Control runs.
+            && (artifactChipScrollRevealed
+                || UIAccessibility.isVoiceOverRunning
+                || UIAccessibility.isSwitchControlRunning)
             && dockedToolbarShouldBeVisible
             && dockedToolbar?.isHidden == false
             && !zoomOverlayShown
@@ -1442,8 +1448,11 @@ public final class GhosttySurfaceView: UIView, TerminalSurfaceHosting {
     /// programmatic offset changes (recentering, scroll-to-bottom) from
     /// revealing a chip nobody is interacting with.
     private func noteArtifactChipScrollActivity() {
-        guard artifactChipHost.isRequestedVisible,
-              scrollMechanicsView.isTracking
+        // Deliberately NOT gated on mounted chip content: the scroll that
+        // brings the first file into view finishes before the settled scan
+        // mounts the chip, and the recorded reveal is what lets that mount
+        // become visible without a second scroll.
+        guard scrollMechanicsView.isTracking
                 || scrollMechanicsView.isDragging
                 || scrollMechanicsView.isDecelerating,
               !artifactChipScrollRevealed else { return }
@@ -3836,10 +3845,10 @@ extension GhosttySurfaceView: UIScrollViewDelegate {
     }
 
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        guard scrollView === scrollMechanicsView,
-              artifactChipHost.isRequestedVisible else { return }
+        guard scrollView === scrollMechanicsView else { return }
         // Reveal on touch-down and hold the chip (no linger) while the finger
-        // is down; the end/deceleration callbacks arm the fade-out.
+        // is down; the end/deceleration callbacks arm the fade-out. Recorded
+        // even before any chip content mounts (see noteArtifactChipScrollActivity).
         revealArtifactChipForScroll()
     }
 
