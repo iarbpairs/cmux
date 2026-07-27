@@ -246,6 +246,26 @@ struct TerminalKeyboardCopyModeResolverTests {
 
 @Suite("Terminal keyboard copy mode cursor")
 struct TerminalKeyboardCopyModeCursorPackageTests {
+    @Test func ghosttyCellPixelsConvertToAppKitPoints() {
+        #expect(
+            terminalKeyboardCopyModeCellDimensionPoints(
+                reportedCellDimensionPixels: 28,
+                surfaceCellDimensionPixels: 30,
+                backingScaleFactor: 2
+            ) == 14
+        )
+    }
+
+    @Test func surfaceCellPixelsProvidePreActionFallback() {
+        #expect(
+            terminalKeyboardCopyModeCellDimensionPoints(
+                reportedCellDimensionPixels: 0,
+                surfaceCellDimensionPixels: 36,
+                backingScaleFactor: 2
+            ) == 18
+        )
+    }
+
     @Test func motionThenVisualSelectionUsesMovedCursorAsAnchor() {
         var cursor = TerminalKeyboardCopyModeCursor(row: 8, column: 7)
 

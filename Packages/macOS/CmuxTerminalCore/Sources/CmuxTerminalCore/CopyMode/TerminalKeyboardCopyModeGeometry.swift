@@ -1,5 +1,25 @@
 import Foundation
 
+/// Converts a Ghostty cell dimension from device pixels to AppKit points.
+///
+/// Ghostty reports cell dimensions in device pixels, while copy-mode overlays
+/// are laid out in AppKit points. Prefer the latest cell-size action and fall
+/// back to the surface size when that action has not arrived yet.
+public func terminalKeyboardCopyModeCellDimensionPoints(
+    reportedCellDimensionPixels: Double,
+    surfaceCellDimensionPixels: Double,
+    backingScaleFactor: Double
+) -> Double {
+    let scale = backingScaleFactor.isFinite && backingScaleFactor > 0
+        ? backingScaleFactor
+        : 1
+    let pixels = reportedCellDimensionPixels.isFinite && reportedCellDimensionPixels > 0
+        ? reportedCellDimensionPixels
+        : surfaceCellDimensionPixels
+    guard pixels.isFinite, pixels > 0 else { return 0 }
+    return pixels / scale
+}
+
 /// Resolves the row count that is actually visible in the terminal host view.
 ///
 /// Ghostty can report a backing grid that is taller than the clipped AppKit
