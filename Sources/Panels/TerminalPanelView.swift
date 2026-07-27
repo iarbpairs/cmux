@@ -84,6 +84,7 @@ struct TerminalPanelView: View {
                 showsUnreadNotificationRing: hasUnreadNotification && notificationPaneRingEnabled,
                 inactiveOverlayColor: appearance.unfocusedOverlayNSColor,
                 inactiveOverlayOpacity: appearance.unfocusedOverlayOpacity,
+                copyModeCursorColor: appearance.cursorColor,
                 searchState: panel.searchState,
                 reattachToken: panel.viewReattachToken,
                 sessionContentWidthPresentation: sessionContentWidthPresentation,
@@ -348,6 +349,25 @@ struct PanelAppearance {
     let unfocusedOverlayNSColor: NSColor
     let unfocusedOverlayOpacity: Double
     let usesClearContentBackground: Bool
+    let cursorColor: NSColor
+
+    init(
+        backgroundColor: NSColor,
+        foregroundColor: NSColor,
+        dividerColor: Color,
+        unfocusedOverlayNSColor: NSColor,
+        unfocusedOverlayOpacity: Double,
+        usesClearContentBackground: Bool,
+        cursorColor: NSColor? = nil
+    ) {
+        self.backgroundColor = backgroundColor
+        self.foregroundColor = foregroundColor
+        self.dividerColor = dividerColor
+        self.unfocusedOverlayNSColor = unfocusedOverlayNSColor
+        self.unfocusedOverlayOpacity = unfocusedOverlayOpacity
+        self.usesClearContentBackground = usesClearContentBackground
+        self.cursorColor = cursorColor ?? foregroundColor
+    }
 
     var contentBackgroundColor: NSColor {
         usesClearContentBackground ? .clear : backgroundColor
@@ -383,7 +403,8 @@ struct PanelAppearance {
                 opacity: config.backgroundOpacity,
                 usesGhosttyGlassStyle: config.backgroundBlur.isMacOSGlassStyle,
                 usesTransparentWindow: usesTransparentWindow
-            )
+            ),
+            cursorColor: config.cursorColor
         )
     }
 

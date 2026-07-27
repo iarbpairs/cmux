@@ -3428,15 +3428,18 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
 
     private func setupKeyboardCopyModeCursorOverlay() {
         keyboardCopyModeCursorOverlayView.wantsLayer = true
-        keyboardCopyModeCursorOverlayView.layer?.backgroundColor = NSColor.controlAccentColor
-            .withAlphaComponent(0.45)
-            .cgColor
-        keyboardCopyModeCursorOverlayView.layer?.borderColor = NSColor.white
-            .withAlphaComponent(0.70)
-            .cgColor
+        keyboardCopyModeCursorOverlayView.layer?.backgroundColor = NSColor.clear.cgColor
+        keyboardCopyModeCursorOverlayView.layer?.borderColor = NSColor.controlAccentColor.cgColor
         keyboardCopyModeCursorOverlayView.layer?.borderWidth = 1
         keyboardCopyModeCursorOverlayView.isHidden = true
         addSubview(keyboardCopyModeCursorOverlayView, positioned: .above, relativeTo: nil)
+    }
+
+    func setKeyboardCopyModeCursorColor(_ color: NSColor) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        keyboardCopyModeCursorOverlayView.layer?.borderColor = color.withAlphaComponent(1).cgColor
+        CATransaction.commit()
     }
 
     func applySurfaceBackground() {
@@ -4121,12 +4124,16 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         let backingRows = max(Int(size.rows), 1)
         let columns = max(Int(size.columns), 1)
         let backingScaleFactor = max(window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 1, 1)
-        let resolvedCellWidth = cellSize.width > 0
-            ? cellSize.width
-            : CGFloat(size.cell_width_px) / backingScaleFactor
-        let resolvedCellHeight = cellSize.height > 0
-            ? cellSize.height
-            : CGFloat(size.cell_height_px) / backingScaleFactor
+        let resolvedCellWidth = CGFloat(terminalKeyboardCopyModeCellDimensionPoints(
+            reportedCellDimensionPixels: Double(cellSize.width),
+            surfaceCellDimensionPixels: Double(size.cell_width_px),
+            backingScaleFactor: Double(backingScaleFactor)
+        ))
+        let resolvedCellHeight = CGFloat(terminalKeyboardCopyModeCellDimensionPoints(
+            reportedCellDimensionPixels: Double(cellSize.height),
+            surfaceCellDimensionPixels: Double(size.cell_height_px),
+            backingScaleFactor: Double(backingScaleFactor)
+        ))
         guard resolvedCellWidth > 0, resolvedCellHeight > 0 else { return nil }
 
         let rows = terminalKeyboardCopyModeVisibleViewportRows(
@@ -7273,6 +7280,7 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
 #if DEBUG
     struct DebugKeyboardCopyModeCursorOverlayState {
         let backgroundAlpha: CGFloat
+        let borderColor: NSColor?
         let borderWidth: CGFloat
     }
 
@@ -7280,6 +7288,8 @@ class GhosttyNSView: NSView, NSUserInterfaceValidations {
         DebugKeyboardCopyModeCursorOverlayState(
             backgroundAlpha: keyboardCopyModeCursorOverlayView.layer?.backgroundColor
                 .flatMap { NSColor(cgColor: $0)?.alphaComponent } ?? 0,
+            borderColor: keyboardCopyModeCursorOverlayView.layer?.borderColor
+                .flatMap(NSColor.init(cgColor:)),
             borderWidth: keyboardCopyModeCursorOverlayView.layer?.borderWidth ?? 0
         )
     }
@@ -9061,6 +9071,10 @@ final class GhosttySurfaceScrollView: NSView {
 
     func setTriggerFlashHandler(_ handler: (() -> Void)?) {
         surfaceView.onTriggerFlash = handler
+    }
+
+    func setKeyboardCopyModeCursorColor(_ color: NSColor) {
+        surfaceView.setKeyboardCopyModeCursorColor(color)
     }
 
     /// Applies the host-layer terminal fill and optionally clears the shared backdrop behind it.
@@ -11922,6 +11936,7 @@ struct GhosttyTerminalView: NSViewRepresentable {
     var showsUnreadNotificationRing: Bool = false
     var inactiveOverlayColor: NSColor = .clear
     var inactiveOverlayOpacity: Double = 0
+    var copyModeCursorColor: NSColor = .controlAccentColor
     var searchState: TerminalSurface.SearchState? = nil
     var reattachToken: UInt64 = 0
     var sessionContentWidthPresentation = SessionContentWidthPresentation.disabled
@@ -12176,6 +12191,7 @@ struct GhosttyTerminalView: NSViewRepresentable {
                 opacity: CGFloat(inactiveOverlayOpacity),
                 visible: showsInactiveOverlay
             )
+            hostedView.setKeyboardCopyModeCursorColor(copyModeCursorColor)
             hostedView.setNotificationRing(visible: showsUnreadNotificationRing)
             hostedView.setSearchOverlay(searchState: searchState)
             hostedView.syncKeyStateIndicator(text: terminalSurface.currentKeyStateIndicatorText)
@@ -12269,6 +12285,7 @@ struct GhosttyTerminalView: NSViewRepresentable {
             let vacancyOnTriggerFlash = onTriggerFlash
             let vacancyInactiveOverlayColor = inactiveOverlayColor
             let vacancyInactiveOverlayOpacity = inactiveOverlayOpacity
+            let vacancyCopyModeCursorColor = copyModeCursorColor
             let vacancyShowsInactiveOverlay = showsInactiveOverlay
             let vacancyShowsUnreadNotificationRing = showsUnreadNotificationRing
             let vacancySearchState = searchState
@@ -12326,6 +12343,7 @@ struct GhosttyTerminalView: NSViewRepresentable {
                     opacity: CGFloat(vacancyInactiveOverlayOpacity),
                     visible: vacancyShowsInactiveOverlay
                 )
+                hostedView.setKeyboardCopyModeCursorColor(vacancyCopyModeCursorColor)
                 hostedView.setNotificationRing(visible: vacancyShowsUnreadNotificationRing)
                 hostedView.setSearchOverlay(searchState: vacancySearchState)
                 hostedView.syncKeyStateIndicator(text: terminalSurface.currentKeyStateIndicatorText)

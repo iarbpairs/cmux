@@ -2581,10 +2581,13 @@ struct TerminalKeyboardCopyModeCursorSwiftTests {
 struct TerminalKeyboardCopyModeCursorAppearanceTests {
     @Test func cursorUsesAnUnfilledCellOutline() {
         let surfaceView = GhosttyNSView(frame: NSRect(x: 0, y: 0, width: 800, height: 600))
+        let cursorColor = NSColor(srgbRed: 0.2, green: 0.4, blue: 0.8, alpha: 1)
+        surfaceView.setKeyboardCopyModeCursorColor(cursorColor)
         let state = surfaceView.debugKeyboardCopyModeCursorOverlayState()
 
         #expect(state.backgroundAlpha == 0)
         #expect(state.borderWidth == 1)
+        #expect(state.borderColor?.hexString() == cursorColor.hexString())
     }
 }
 
@@ -2699,6 +2702,15 @@ final class PanelAppearanceBackgroundTests: XCTestCase {
         let appearance = PanelAppearance.fromConfig(config, usesTransparentWindow: false)
 
         XCTAssertEqual(appearance.foregroundColor.hexString(), "#FDF6E3")
+    }
+
+    func testCopyModeCursorUsesConfiguredTerminalCursorColor() {
+        var config = GhosttyConfig()
+        config.cursorColor = NSColor(hex: "#336699")!
+
+        let appearance = PanelAppearance.fromConfig(config, usesTransparentWindow: false)
+
+        XCTAssertEqual(appearance.cursorColor.hexString(), "#336699")
     }
 
     func testGhosttyGlassBackgroundUsesClearContentBackground() {
