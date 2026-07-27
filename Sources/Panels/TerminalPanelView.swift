@@ -85,6 +85,7 @@ struct TerminalPanelView: View {
                 inactiveOverlayColor: appearance.unfocusedOverlayNSColor,
                 inactiveOverlayOpacity: appearance.unfocusedOverlayOpacity,
                 copyModeCursorColor: appearance.cursorColor,
+                copyModeSelectionColor: appearance.selectionColor,
                 searchState: panel.searchState,
                 reattachToken: panel.viewReattachToken,
                 sessionContentWidthPresentation: sessionContentWidthPresentation,
@@ -350,6 +351,7 @@ struct PanelAppearance {
     let unfocusedOverlayOpacity: Double
     let usesClearContentBackground: Bool
     let cursorColor: NSColor
+    let selectionColor: NSColor
 
     init(
         backgroundColor: NSColor,
@@ -358,7 +360,8 @@ struct PanelAppearance {
         unfocusedOverlayNSColor: NSColor,
         unfocusedOverlayOpacity: Double,
         usesClearContentBackground: Bool,
-        cursorColor: NSColor? = nil
+        cursorColor: NSColor? = nil,
+        selectionColor: NSColor? = nil
     ) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor
@@ -367,6 +370,7 @@ struct PanelAppearance {
         self.unfocusedOverlayOpacity = unfocusedOverlayOpacity
         self.usesClearContentBackground = usesClearContentBackground
         self.cursorColor = cursorColor ?? foregroundColor
+        self.selectionColor = selectionColor ?? foregroundColor
     }
 
     var contentBackgroundColor: NSColor {
@@ -404,7 +408,8 @@ struct PanelAppearance {
                 usesGhosttyGlassStyle: config.backgroundBlur.isMacOSGlassStyle,
                 usesTransparentWindow: usesTransparentWindow
             ),
-            cursorColor: config.cursorColor
+            cursorColor: config.cursorColor,
+            selectionColor: config.selectionBackground
         )
     }
 

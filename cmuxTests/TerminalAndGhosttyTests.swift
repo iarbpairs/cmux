@@ -2448,54 +2448,6 @@ final class TerminalKeyboardCopyModeViewportRowTests: XCTestCase {
         XCTAssertEqual(cursor, TerminalKeyboardCopyModeCursor(row: 0, column: 3))
     }
 
-    func testCursorSelectionXRangeUsesCellInteriorWhenAvailable() throws {
-        let range = try XCTUnwrap(
-            terminalKeyboardCopyModeCursorSelectionXRange(
-                rectMinX: 20,
-                rectMaxX: 30,
-                boundsWidth: 100
-            )
-        )
-
-        XCTAssertEqual(range.startX, 20.5, accuracy: 0.0001)
-        XCTAssertEqual(range.endX, 29.5, accuracy: 0.0001)
-    }
-
-    func testCursorSelectionXRangeKeepsNonzeroDragAtRightEdge() throws {
-        let range = try XCTUnwrap(
-            terminalKeyboardCopyModeCursorSelectionXRange(
-                rectMinX: 99.5,
-                rectMaxX: 120,
-                boundsWidth: 100
-            )
-        )
-
-        XCTAssertEqual(range.startX, 98, accuracy: 0.0001)
-        XCTAssertEqual(range.endX, 99, accuracy: 0.0001)
-    }
-
-    func testCursorSelectionXRangeKeepsNonzeroDragForCollapsedCellWidth() throws {
-        let range = try XCTUnwrap(
-            terminalKeyboardCopyModeCursorSelectionXRange(
-                rectMinX: 50,
-                rectMaxX: 50.4,
-                boundsWidth: 100
-            )
-        )
-
-        XCTAssertEqual(range.startX, 50.2, accuracy: 0.0001)
-        XCTAssertEqual(range.endX, 51.2, accuracy: 0.0001)
-    }
-
-    func testCursorSelectionXRangeReturnsNilWhenViewCannotExpressHorizontalDrag() {
-        XCTAssertNil(
-            terminalKeyboardCopyModeCursorSelectionXRange(
-                rectMinX: 0,
-                rectMaxX: 10,
-                boundsWidth: 1
-            )
-        )
-    }
 }
 
 
@@ -2711,6 +2663,15 @@ final class PanelAppearanceBackgroundTests: XCTestCase {
         let appearance = PanelAppearance.fromConfig(config, usesTransparentWindow: false)
 
         XCTAssertEqual(appearance.cursorColor.hexString(), "#336699")
+    }
+
+    func testCopyModeSelectionUsesConfiguredTerminalSelectionColor() {
+        var config = GhosttyConfig()
+        config.selectionBackground = NSColor(hex: "#993366")!
+
+        let appearance = PanelAppearance.fromConfig(config, usesTransparentWindow: false)
+
+        XCTAssertEqual(appearance.selectionColor.hexString(), "#993366")
     }
 
     func testGhosttyGlassBackgroundUsesClearContentBackground() {
