@@ -45,6 +45,7 @@ public struct AppSection: View {
     @State private var fileEditorWordWrap: DefaultsValueModel<Bool>
     @State private var iMessage: DefaultsValueModel<Bool>
     @State private var reorder: DefaultsValueModel<Bool>
+    @State private var notificationDelivery: DefaultsValueModel<NotificationDeliveryMode>
     @State private var dockBadge: DefaultsValueModel<Bool>
     @State private var menuBarOnly: DefaultsValueModel<Bool>
     @State private var showInMenuBar: DefaultsValueModel<Bool>
@@ -98,6 +99,7 @@ public struct AppSection: View {
         _fileEditorWordWrap = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.fileEditor.wordWrap))
         _iMessage = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.iMessageMode))
         _reorder = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.reorderOnNotification))
+        _notificationDelivery = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.notifications.delivery))
         _dockBadge = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.notifications.dockBadge))
         _menuBarOnly = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.app.menuBarOnly))
         _showInMenuBar = State(initialValue: DefaultsValueModel(store: defaultsStore, key: catalog.notifications.showInMenuBar))
@@ -138,7 +140,7 @@ public struct AppSection: View {
             mainCard
         }
         .task {
-            startSettingsObservation([language, appearance, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, fileEditorWordWrap, iMessage, reorder, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundCommand, customSoundFile, telemetry, confirmQuit, warnCloseTab, warnCloseX, hideCloseButton, renameSelects, paletteAllSurfaces])
+            startSettingsObservation([language, appearance, appIcon, placement, inheritDir, minimalMode, keepWorkspaceOpen, firstClick, focusHistoryIncludesPanesAndTabs, fileDrop, preferredEditor, openSupported, openMarkdown, globalFontMagnification, markdownFontSize, markdownFontFamily, markdownMaxWidth, canvasPaneGap, canvasSnapping, fileEditorWordWrap, iMessage, reorder, notificationDelivery, dockBadge, menuBarOnly, showInMenuBar, paneRing, paneFlash, agentPermissionPrompt, agentTurnComplete, agentIdleReminder, soundName, soundCommand, customSoundFile, telemetry, confirmQuit, warnCloseTab, warnCloseX, hideCloseButton, renameSelects, paletteAllSurfaces])
             if languageAtAppear == nil { languageAtAppear = language.current }; if telemetryAtAppear == nil { telemetryAtAppear = telemetry.current }
         }
     }
@@ -638,6 +640,21 @@ public struct AppSection: View {
                 Toggle("", isOn: Binding(get: { agentIdleReminder.current }, set: { agentIdleReminder.set($0) }))
                     .labelsHidden()
                     .controlSize(.small)
+            }
+
+            SettingsCardDivider()
+            SettingsCardRow(
+                configurationReview: .json("notifications.delivery"),
+                String(localized: "settings.notifications.delivery.title", defaultValue: "Notification Delivery"),
+                subtitle: String(localized: "settings.notifications.delivery.subtitle", defaultValue: "Dynamic Notch stays visible when Focus or Do Not Disturb suppresses system notifications.")
+            ) {
+                Picker("", selection: Binding(get: { notificationDelivery.current }, set: { notificationDelivery.set($0) })) {
+                    Text(String(localized: "settings.notifications.delivery.option.system", defaultValue: "System")).tag(NotificationDeliveryMode.system)
+                    Text(String(localized: "settings.notifications.delivery.option.dynamicNotch", defaultValue: "Dynamic Notch")).tag(NotificationDeliveryMode.dynamicNotch)
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("SettingsNotificationDeliveryPicker")
             }
 
             // Desktop Notifications — legacy renders this row
