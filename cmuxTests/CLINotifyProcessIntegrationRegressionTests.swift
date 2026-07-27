@@ -29,6 +29,12 @@ final class CLINotifyProcessIntegrationRegressionTests: XCTestCase {
         let properties = try XCTUnwrap(schema["properties"] as? [String: Any])
         XCTAssertNotNil(properties["actions"])
         XCTAssertNotNil(properties["inputs"])
+        let constraints = try XCTUnwrap(schema["allOf"] as? [[String: Any]])
+        let waitConstraint = try XCTUnwrap(constraints.first)
+        let thenSchema = try XCTUnwrap(waitConstraint["then"] as? [String: Any])
+        let thenProperties = try XCTUnwrap(thenSchema["properties"] as? [String: Any])
+        let timeoutSchema = try XCTUnwrap(thenProperties["timeout"] as? [String: Any])
+        XCTAssertEqual((timeoutSchema["exclusiveMinimum"] as? NSNumber)?.doubleValue, 0)
     }
 
     func testNotifyRuntimeSpecRejectsInvalidControlsBeforeConnecting() throws {
@@ -37,6 +43,7 @@ final class CLINotifyProcessIntegrationRegressionTests: XCTestCase {
             #"{"version":1,"actions":[{"id":"approve","label":"Approve","command":"deploy"}]}"#,
             #"{"version":1,"inputs":[{"id":"reason","label":"Reason","secure":1}]}"#,
             #"{"version":1,"actions":[{"id":"承認","label":"Approve"}]}"#,
+            #"{"version":1,"wait":true,"timeout":0}"#,
         ]
 
         for spec in invalidSpecs {
