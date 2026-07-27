@@ -2713,6 +2713,15 @@ final class PanelAppearanceBackgroundTests: XCTestCase {
         XCTAssertEqual(appearance.cursorColor.hexString(), "#336699")
     }
 
+    func testCopyModeSelectionUsesConfiguredTerminalSelectionColor() {
+        var config = GhosttyConfig()
+        config.selectionBackground = NSColor(hex: "#993366")!
+
+        let appearance = PanelAppearance.fromConfig(config, usesTransparentWindow: false)
+
+        XCTAssertEqual(appearance.selectionColor.hexString(), "#993366")
+    }
+
     func testGhosttyGlassBackgroundUsesClearContentBackground() {
         var config = GhosttyConfig()
         config.backgroundOpacity = 1.0
